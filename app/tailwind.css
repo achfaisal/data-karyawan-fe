@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light --default;
+}
+
+@layer base {
+  ::placeholder {
+    @apply text-gray-400;
+  }
+}
