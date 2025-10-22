@@ -1,10 +1,9 @@
 <script></script>
 <template>
-  <div className="breadcrumbs text-sm">
+  <div class="breadcrumbs text-sm">
     <ul>
       <li><nuxt-link to="/">Home</nuxt-link></li>
-      <!-- <li><a>Home</a></li> -->
-      <li>Tambah Data Karyawan</li>
+      <li>Halaman Sekarang</li>
     </ul>
   </div>
 </template>
