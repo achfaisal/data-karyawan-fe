@@ -40,6 +40,24 @@ function onButtonEdit(empNo) {
   console.log(`Button edit dengan ${empNo} diklik`);
   navigateTo(`/update-karyawan/${empNo}`);
 }
+
+async function onButtonDelete(id) {
+  console.log("Id karyawan : ", id);
+  try {
+    const res = await $fetch(
+      `http://localhost:5000/api/DataKaryawan/delete/${id}`,
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: {},
+      }
+    );
+    console.log(res);
+  } catch (error) {
+    console.error(err);
+    error.value = "Gagal memuat data karyawan.";
+  }
+}
 </script>
 
 <template>
@@ -100,7 +118,12 @@ function onButtonEdit(empNo) {
                   </button>
                 </td>
                 <td class="px-1">
-                  <button class="btn btn-error btn-sm">Delete</button>
+                  <button
+                    @click="onButtonDelete(emp.id)"
+                    class="btn btn-error btn-sm"
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             </tbody>
