@@ -4,10 +4,15 @@ import { ref, onMounted } from "vue";
 const employees = ref([]);
 const loading = ref(true);
 const error = ref("");
-const CurrentPage = ref(1);
+const currentPage = ref(1);
 const pageSize = ref(5);
 const totalData = ref(0);
 const currentDataLength = ref(0);
+const showToast = ref(false);
+const toastMessage = ref("");
+const toastType = ref("success");
+
+const totalPagination = ref(0);
 
 async function fetchData() {
   try {
@@ -15,13 +20,14 @@ async function fetchData() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: {
-        CurrentPage: CurrentPage.value,
+        CurrentPage: currentPage.value,
         PageSize: pageSize.value,
       },
     });
     employees.value = res.data;
     totalData.value = res.total;
     currentDataLength.value = res.data.length;
+    totalPagination.value = Math.ceil(res.total / pageSize.value);
   } catch (err) {
     console.error(err);
     error.value = "Gagal memuat data karyawan.";
@@ -30,33 +36,64 @@ async function fetchData() {
   }
 }
 
-onMounted(fetchData);
+onMounted(async () => {
+  await fetchData();
+  if (toastMessage.value) {
+    console.log("Pesan toast terdeteksi:", toastMessage.value);
+    showTempToast(toastMessage.value, toastType.value);
+    toastMessage.value = "";
+    toastType.value = "";
+  } else {
+    console.log("Tidak ada pesan toast ditemukan.");
+  }
+});
 
 watch(pageSize, () => {
+  currentPage.value = 1;
   fetchData();
 });
 
+watch(currentPage, () => {
+  fetchData();
+});
+
+function showTempToast(message, type = "success", duration = 5000) {
+  toastMessage.value = message;
+  toastType.value = type;
+  showToast.value = true;
+  setTimeout(() => (showToast.value = false), duration);
+}
+
 function onButtonEdit(empNo) {
-  console.log(`Button edit dengan ${empNo} diklik`);
   navigateTo(`/update-karyawan/${empNo}`);
 }
 
 async function onButtonDelete(id) {
   console.log("Id karyawan : ", id);
   try {
-    const res = await $fetch(
-      `http://localhost:5000/api/DataKaryawan/delete/${id}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: {},
-      }
-    );
-    console.log(res);
+    await $fetch(`http://localhost:5000/api/DataKaryawan/delete/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: {},
+    });
+    await fetchData();
+    showTempToast("Data berhasil dihapus", "success");
   } catch (error) {
-    console.error(err);
-    error.value = "Gagal memuat data karyawan.";
+    error.value = "Gagal menghapus data karyawan.";
+    showTempToast("Gagal menghapus data", "error");
   }
+}
+
+function onButtonPage(page) {
+  currentPage.value = page;
+}
+
+function goToPrevPage() {
+  currentPage.value--;
+}
+
+function goToNextPage() {
+  currentPage.value++;
 }
 </script>
 
@@ -64,13 +101,27 @@ async function onButtonDelete(id) {
   <div class="min-h-screen bg-base-200 flex items-center justify-center p-6">
     <div class="card w-full max-w-6xl shadow-xl bg-base-100">
       <div class="card-body">
-        <Breadcrumbs />
+        <Breadcrumbs pageDescription="Data Karyawan" />
         <div class="flex items-center justify-between mb-4">
           <h2 class="card-title text-center md:text-left">Daftar Karyawan</h2>
 
+          <div v-if="showToast" class="toast toast-top toast-center z-50">
+            <div
+              class="alert shadow-lg"
+              :class="{
+                'alert-success': toastType === 'success',
+                'alert-error': toastType === 'error',
+                'alert-info': toastType === 'info',
+                'alert-warning': toastType === 'warning',
+              }"
+            >
+              <span class="font-semibold">{{ toastMessage }}</span>
+            </div>
+          </div>
+
           <div class="flex items-center gap-2">
-            <button @click="" class="min-w-28 text-sky-800">
-              + Tambah Data
+            <button class="btn btn-link min-w-28 text-sky-800 no-underline">
+              <NuxtLink to="/insert-karyawan"> + Tambah Data </NuxtLink>
             </button>
             <span class="text-sm text-gray-600">Tampilkan:</span>
             <select v-model="pageSize" class="select select-bordered select-sm">
@@ -100,7 +151,7 @@ async function onButtonDelete(id) {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(emp, index) in employees" :key="emp.emp_no">
+              <tr v-for="emp in employees" :key="emp.emp_no">
                 <td>{{ emp.emp_no }}</td>
                 <td class="font-medium">{{ emp.emp_name }}</td>
                 <td>{{ emp.emp_email }}</td>
@@ -137,16 +188,32 @@ async function onButtonDelete(id) {
           </div>
 
           <div class="join">
-            <button class="join-item btn btn-sm">«</button>
-            <button class="join-item btn btn-sm btn-active">1</button>
-            <button class="join-item btn btn-sm">2</button>
-            <button class="join-item btn btn-sm">3</button>
-            <button class="join-item btn btn-sm">»</button>
-          </div>
-        </div>
+            <button
+              class="join-item btn btn-sm"
+              @click="goToPrevPage"
+              :disabled="currentPage === 1"
+            >
+              «
+            </button>
 
-        <div v-if="error" class="text-center mt-4 text-red-500 font-medium">
-          {{ error }}
+            <button
+              v-for="page in totalPagination"
+              :key="page"
+              @click="onButtonPage(page)"
+              class="join-item btn btn-sm"
+              :class="{ 'btn-active': currentPage === page }"
+            >
+              {{ page }}
+            </button>
+
+            <button
+              class="join-item btn btn-sm"
+              @click="goToNextPage"
+              :disabled="totalPagination <= currentPage"
+            >
+              »
+            </button>
+          </div>
         </div>
       </div>
     </div>

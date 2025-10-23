@@ -7,12 +7,10 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
-  // untuk ubah teks tombol (misal “Simpan” atau “Update”)
   submitLabel: {
     type: String,
     default: "Simpan Data",
   },
-  // URL endpoint tujuan (insert / update)
   endpoint: {
     type: String,
     required: true,
@@ -55,6 +53,7 @@ async function handleSubmit() {
       body: toRaw(form),
     });
     console.log("Response:", res);
+
     if (res.retval === "Insert success") {
       emit("submit-success", res);
     } else {

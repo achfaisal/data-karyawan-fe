@@ -1,33 +1,38 @@
 <script setup>
-import { ref } from "vue";
+import EmployeeForm from "~/components/EmployeeForm.vue";
+import Breadcrumbs from "~/components/Breadcrumbs.vue";
 
-const responseMessage = ref("");
+const toastMessage = ref("");
+const toastType = ref("success");
 
-function success(res) {
-  console.log(res);
-  responseMessage.value = "Sukses";
+function onSuccess() {
+  toastMessage.value = "Data berhasil ditambahkan";
+  toastType.value = "success";
+  alert("Update Berhasil");
+}
+function onFailed() {
+  toastMessage.value = "Gagal menambahkan data";
+  toastType.value = "error";
 }
 
-function failed(err) {
-  if (err) {
-    console.log(err);
-  }
-  responseMessage.value = "Gagal";
-}
+// function showTempToast(message, type = "success", duration = 5000) {
+//   toastMessage.value = message;
+//   toastType.value = type;
+//   showToast.value = true;
+//   setTimeout(() => (showToast.value = false), duration);
+// }
 </script>
 
 <template>
-  <h1>Hasil : {{ responseMessage }}</h1>
-
   <div class="min-h-screen bg-base-200 flex items-center justify-center p-6">
     <div class="card w-full max-w-2xl shadow-xl bg-base-100">
       <div class="card-body">
-        <Breadcrumbs />
-
+        <Breadcrumbs pageDescription="Tambah Data Karyawan" />
         <EmployeeForm
           endpoint="http://localhost:5000/api/DataKaryawan/insert"
-          @submit-success="success"
-          @submit-failed="failed"
+          submit-label="Simpan Data"
+          @submit-success="onSuccess"
+          @submit-failed="onFailed"
         />
       </div>
     </div>
