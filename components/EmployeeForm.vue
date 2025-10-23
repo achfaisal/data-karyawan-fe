@@ -2,7 +2,6 @@
 import { reactive, watch, toRaw } from "vue";
 
 const props = defineProps({
-  // jika untuk edit, parent bisa kirim data awal
   modelValue: {
     type: Object,
     default: () => ({}),
@@ -15,6 +14,7 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  disabled: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["submit-success", "submit-failed"]);
@@ -36,7 +36,6 @@ const form = reactive({
   mgr_email: "",
 });
 
-// update form jika props.modelValue berubah (misal mode edit)
 watch(
   () => props.modelValue,
   (newVal) => {
@@ -52,12 +51,11 @@ async function handleSubmit() {
       headers: { "Content-Type": "application/json" },
       body: toRaw(form),
     });
-    console.log("Response:", res);
 
-    if (res.retval === "Insert success") {
+    if (res.retval && res.retval.toLowerCase().includes("success")) {
       emit("submit-success", res);
     } else {
-      emit("submit-failed");
+      emit("submit-failed", res);
     }
   } catch (err) {
     emit("submit-failed", err);
@@ -235,7 +233,11 @@ async function handleSubmit() {
     </div>
 
     <div class="pt-6">
-      <button type="submit" class="btn btn-primary w-full">
+      <button
+        type="submit"
+        class="btn btn-primary w-full"
+        :disabled="props.disabled"
+      >
         {{ submitLabel }}
       </button>
     </div>

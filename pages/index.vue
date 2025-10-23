@@ -1,5 +1,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useToast } from "~/composables/useToast";
+
+const { showToast, toastMessage, toastType, showTempToast } = useToast();
 
 const employees = ref([]);
 const loading = ref(true);
@@ -8,10 +11,6 @@ const currentPage = ref(1);
 const pageSize = ref(5);
 const totalData = ref(0);
 const currentDataLength = ref(0);
-const showToast = ref(false);
-const toastMessage = ref("");
-const toastType = ref("success");
-
 const totalPagination = ref(0);
 
 async function fetchData() {
@@ -38,14 +37,6 @@ async function fetchData() {
 
 onMounted(async () => {
   await fetchData();
-  if (toastMessage.value) {
-    console.log("Pesan toast terdeteksi:", toastMessage.value);
-    showTempToast(toastMessage.value, toastType.value);
-    toastMessage.value = "";
-    toastType.value = "";
-  } else {
-    console.log("Tidak ada pesan toast ditemukan.");
-  }
 });
 
 watch(pageSize, () => {
@@ -56,13 +47,6 @@ watch(pageSize, () => {
 watch(currentPage, () => {
   fetchData();
 });
-
-function showTempToast(message, type = "success", duration = 5000) {
-  toastMessage.value = message;
-  toastType.value = type;
-  showToast.value = true;
-  setTimeout(() => (showToast.value = false), duration);
-}
 
 function onButtonEdit(empNo) {
   navigateTo(`/update-karyawan/${empNo}`);
@@ -160,7 +144,7 @@ function goToNextPage() {
                 <td>
                   {{ new Date(emp.join_date).toLocaleDateString("id-ID") }}
                 </td>
-                <td class="px-1">
+                <td class="px-0">
                   <button
                     @click="onButtonEdit(emp.emp_no)"
                     class="btn btn-primary btn-sm"
@@ -168,7 +152,7 @@ function goToNextPage() {
                     Edit
                   </button>
                 </td>
-                <td class="px-1">
+                <td class="px-0">
                   <button
                     @click="onButtonDelete(emp.id)"
                     class="btn btn-error btn-sm"

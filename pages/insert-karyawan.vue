@@ -1,26 +1,6 @@
 <script setup>
 import EmployeeForm from "~/components/EmployeeForm.vue";
 import Breadcrumbs from "~/components/Breadcrumbs.vue";
-
-const toastMessage = ref("");
-const toastType = ref("success");
-
-function onSuccess() {
-  toastMessage.value = "Data berhasil ditambahkan";
-  toastType.value = "success";
-  alert("Update Berhasil");
-}
-function onFailed() {
-  toastMessage.value = "Gagal menambahkan data";
-  toastType.value = "error";
-}
-
-// function showTempToast(message, type = "success", duration = 5000) {
-//   toastMessage.value = message;
-//   toastType.value = type;
-//   showToast.value = true;
-//   setTimeout(() => (showToast.value = false), duration);
-// }
 </script>
 
 <template>
@@ -31,8 +11,6 @@ function onFailed() {
         <EmployeeForm
           endpoint="http://localhost:5000/api/DataKaryawan/insert"
           submit-label="Simpan Data"
-          @submit-success="onSuccess"
-          @submit-failed="onFailed"
         />
       </div>
     </div>
